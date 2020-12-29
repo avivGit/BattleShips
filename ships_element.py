@@ -1,7 +1,6 @@
-from collections import namedtuple
-from uint8_element import UInt8Element
 
-Ship = namedtuple('Ship', ['size'])
+from game_elements import Ship
+from uint8_element import UInt8Element
 
 
 class ShipsElement:

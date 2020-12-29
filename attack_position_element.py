@@ -1,7 +1,6 @@
-from collections import namedtuple
+from game_elements import AttackPosition
 from uint8_element import UInt8Element
 
-AttackPosition = namedtuple('AttackPosition', ['i', 'j'])
 
 
 class AttackPositionElement:
