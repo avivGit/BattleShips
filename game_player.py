@@ -2,10 +2,15 @@ from message_manager import MessageManager
 from game_elements import AttackResponse
 from abc import abstractmethod
 
+from tcp_client import TcpClient
+from tcp_server import TcpServer
+from consts import NetworkDetails
+
 
 class Player:
-    def __init__(self, message_manager: MessageManager):
-        self.message_manager = message_manager
+    def __init__(self, socket_holder):
+        self.socket_holder = socket_holder
+        self.message_manager = MessageManager(self.socket_holder.get_client())
         self.user_handler = None
         self.now_playing = False
         self.game_over = False
@@ -61,14 +66,15 @@ class Player:
         self.finish()
 
     def finish(self):
-        self.message_manager.close()
+        self.socket_holder.close()
         self.game_over = True
 
 
 class Player1(Player):
-    def __init__(self, message_manager: MessageManager):
-        super().__init__(message_manager)
+    def __init__(self):
+        self.socket_holder = TcpServer('0.0.0.0', NetworkDetails.PORT)
         self.now_playing = True
+        super().__init__(self.socket_holder)
 
     def specific_pregame_routine(self):
         ships = self.message_manager.recv_ships()
@@ -76,9 +82,10 @@ class Player1(Player):
 
 
 class Player2(Player):
-    def __init__(self, message_manager: MessageManager):
-        super().__init__(message_manager)
+    def __init__(self):
+        self.socket_holder = TcpClient(NetworkDetails.IP, NetworkDetails.PORT)
         self.now_playing = False
+        super().__init__(self.socket_holder)
 
     def specific_pregame_routine(self):
         ships = self.user_handler.get_ships()
