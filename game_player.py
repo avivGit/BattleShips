@@ -1,6 +1,6 @@
+from game_logic import GameLogic
 from manual_user_handler import ManualUserHandler
 from message_manager import MessageManager
-from game_elements import AttackResponse
 from abc import abstractmethod
 
 from tcp_client import TcpClient
@@ -13,6 +13,8 @@ class Player:
         self.socket_holder = socket_holder
         self.message_manager = MessageManager(self.socket_holder.get_client())
         self.user_handler = ManualUserHandler()
+        self.game_logic = GameLogic()
+        self.game_logic.set_player(self)
         self.now_playing = now_playing
         self.game_over = False
 
@@ -30,7 +32,6 @@ class Player:
         if not self.message_manager.recv_ready():
             self.game_ended_before_started()
 
-
     def main_loop(self):
         while not self.game_over:
             if self.now_playing:
@@ -43,23 +44,13 @@ class Player:
         self.message_manager.send_attack(attack)
         response = self.message_manager.recv_attack_response()
         self.user_handler.notify_response(response)
-        if AttackResponse.FORFEIT == response:
-            self.win()
-            return
-
-        if AttackResponse.MISS == response:
-            self.now_playing = False
+        self.game_logic.check_response_attacker(response)
 
     def absorb(self):
         attack = self.message_manager.recv_attack()
         response = self.user_handler.absorb(attack)
         self.message_manager.send_attack_response(response)
-        if AttackResponse.FORFEIT == response:
-            self.lose()
-            return
-
-        if AttackResponse.MISS == response:
-            self.now_playing = True
+        self.game_logic.check_response_attacked(response)
 
     def win(self):
         self.user_handler.notify_win()
@@ -87,6 +78,7 @@ class Player1(Player):
     def specific_pregame_routine(self):
         ships = self.message_manager.recv_ships()
         self.user_handler.set_ships(ships)
+        self.game_logic.set_ships(ships)
 
 
 class Player2(Player):
@@ -96,4 +88,5 @@ class Player2(Player):
 
     def specific_pregame_routine(self):
         ships = self.user_handler.get_ships()
+        self.game_logic.set_ships(ships)
         self.message_manager.send_ships(ships)
