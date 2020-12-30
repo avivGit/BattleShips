@@ -12,8 +12,11 @@ class ManualUserHandler:
     def get_ships():
         ships = []
         while True:
-            x = int(input("enter ship size\n"))
-            if not x:
+            x = input("enter ship size\n")
+            if not x.isdigit():
+                break
+            x = int(x)
+            if x <= 0:
                 break
             ships.append(Ship(size=x))
         return ships
@@ -21,8 +24,8 @@ class ManualUserHandler:
     @staticmethod
     def get_attack():
         print("enter attack position")
-        i,j = map(int,input().split())
-        return AttackPosition(i,j)
+        i, j = map(int, input().split())
+        return AttackPosition(i, j)
 
     @staticmethod
     def absorb(attack_position):
@@ -32,8 +35,13 @@ class ManualUserHandler:
         return response
 
     @staticmethod
+    def notify_response(response):
+        print({AttackResponse.MISS: "Miss", AttackResponse.HIT: "Hit", AttackResponse.HIT_AND_DESTROY: "Destroy",
+               AttackResponse.FORFEIT: "FF"}.get(response, "Unknown"))
+
+    @staticmethod
     def notify_win():
-        print("you won!")
+        print("you win!")
 
     @staticmethod
     def notify_lose():
